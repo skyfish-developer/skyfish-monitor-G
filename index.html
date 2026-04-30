@@ -116,35 +116,48 @@
     .card.temp .card-value { color: #FF6B35; }
     .card-unit { font-size: .85rem; color: rgba(255,255,255,.38); }
 
-    /* ── Chart ── */
-    .chart-card {
-      background: rgba(255,255,255,.07);
-      border: 1px solid rgba(255,255,255,.12);
-      border-radius: 22px; padding: 28px 24px;
-      backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
-      margin-bottom: 28px;
+    /* ── Período ── */
+    .period-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 16px; flex-wrap: wrap; gap: 10px;
     }
-    .chart-header {
-      display: flex; justify-content: space-between; align-items: center;
-      margin-bottom: 20px; flex-wrap: wrap; gap: 8px;
-    }
-    .chart-title {
-      font-size: .72rem; font-weight: 600;
-      letter-spacing: 1.3px; text-transform: uppercase;
-      color: rgba(255,255,255,.5);
+    .period-label {
+      font-size: .72rem; font-weight: 600; letter-spacing: 1.2px;
+      text-transform: uppercase; color: rgba(255,255,255,.4);
     }
     .time-buttons { display: flex; gap: 8px; }
     .time-btn {
-      font-size: .72rem; padding: 4px 12px; border-radius: 12px;
+      font-size: .72rem; padding: 4px 14px; border-radius: 12px;
       border: 1px solid rgba(255,255,255,.2); background: transparent;
       color: rgba(255,255,255,.5); cursor: pointer; transition: all .2s;
     }
-    .time-btn.active,
-    .time-btn:hover {
+    .time-btn.active, .time-btn:hover {
       background: rgba(255,255,255,.12); color: #fff;
       border-color: rgba(255,255,255,.4);
     }
-    .chart-wrap { position: relative; height: 260px; }
+
+    /* ── Charts grid ── */
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(460px, 1fr));
+      gap: 18px; margin-bottom: 28px;
+    }
+    .chart-card {
+      background: rgba(255,255,255,.07);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 22px; padding: 24px;
+      backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+    }
+    .chart-title {
+      font-size: .72rem; font-weight: 700;
+      letter-spacing: 1.2px; text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    .chart-wrap { position: relative; height: 200px; }
+
+    @media(max-width:520px) {
+      .charts-grid { grid-template-columns: 1fr; }
+    }
 
     /* ── Status ── */
     .status-bar {
@@ -253,18 +266,33 @@
 
   </div>
 
-  <!-- Gráfico histórico -->
-  <div class="chart-card">
-    <div class="chart-header">
-      <div class="chart-title">Histórico de leituras</div>
-      <div class="time-buttons">
-        <button class="time-btn active" data-h="6">6h</button>
-        <button class="time-btn" data-h="24">24h</button>
-        <button class="time-btn" data-h="72">3d</button>
-      </div>
+  <!-- Controle de período -->
+  <div class="period-bar">
+    <span class="period-label">Período do histórico</span>
+    <div class="time-buttons">
+      <button class="time-btn active" data-h="6">6h</button>
+      <button class="time-btn" data-h="24">24h</button>
+      <button class="time-btn" data-h="72">3d</button>
     </div>
-    <div class="chart-wrap">
-      <canvas id="chart"></canvas>
+  </div>
+
+  <!-- Gráficos individuais -->
+  <div class="charts-grid">
+    <div class="chart-card">
+      <div class="chart-title" style="color:#00FFB3">OD Concentração <span style="opacity:.5;font-weight:400">mg/L</span></div>
+      <div class="chart-wrap"><canvas id="chart-od"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title" style="color:#00CFFF">OD Saturação <span style="opacity:.5;font-weight:400">%</span></div>
+      <div class="chart-wrap"><canvas id="chart-sat"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title" style="color:#A8FF78">pH <span style="opacity:.5;font-weight:400">pH</span></div>
+      <div class="chart-wrap"><canvas id="chart-ph"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title" style="color:#FF6B35">Temperatura <span style="opacity:.5;font-weight:400">°C</span></div>
+      <div class="chart-wrap"><canvas id="chart-temp"></canvas></div>
     </div>
   </div>
 
@@ -300,11 +328,11 @@ const CONFIG = {
 const KEYS = ['od_concentracao', 'od_saturacao', 'ph', 'od_temp'];
 
 let jwt        = null;
-let chart      = null;
+let charts     = {};
 let ws         = null;
 let wsReconTimer = null;
 let horasHistorico = 6;
-const CHART_REFRESH_MS = 60_000; // gráfico histórico: 1 min
+const CHART_REFRESH_MS = 60_000;
 
 // ── Auth via cliente público ──
 async function getToken() {
@@ -338,7 +366,6 @@ function fmt(v, dec = 2) {
 }
 
 function renderCards(latest) {
-  // latest vem do WS: { od_concentracao: [[ts, val]], ... }
   const get = key => latest?.[key]?.[0]?.[1] ?? latest?.[key]?.[0]?.value;
   document.getElementById('val-od'  ).textContent = fmt(get('od_concentracao'), 3);
   document.getElementById('val-sat' ).textContent = fmt(get('od_saturacao'), 3);
@@ -349,55 +376,59 @@ function renderCards(latest) {
   document.getElementById('loading').classList.add('hidden');
 }
 
-// ── Renderiza gráfico ──
-function renderChart(history) {
-  const refKey = 'od_temp';
-  const labels = (history?.[refKey] ?? []).map(p => {
-    const d = new Date(p.ts);
-    return d.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
-  });
+// ── Renderiza gráficos individuais ──
+const METRICS = [
+  {key:'od_concentracao', canvasId:'chart-od',   color:'#00FFB3', label:'OD Conc. (mg/L)'},
+  {key:'od_saturacao',    canvasId:'chart-sat',  color:'#00CFFF', label:'OD Sat. (%)'},
+  {key:'ph',              canvasId:'chart-ph',   color:'#A8FF78', label:'pH'},
+  {key:'od_temp',         canvasId:'chart-temp', color:'#FF6B35', label:'Temp. (°C)'},
+];
 
-  function ds(key, label, color) {
-    return {
-      label, data: (history?.[key] ?? []).map(p => parseFloat(p.value).toFixed(3)),
-      borderColor: color, backgroundColor: 'transparent',
-      borderWidth: 2, pointRadius: 0, tension: 0.35,
-    };
-  }
-
-  const chartData = {
-    labels,
-    datasets: [
-      ds('od_concentracao', 'OD Conc. (mg/L)', '#00FFB3'),
-      ds('od_saturacao',    'OD Sat. (%)',      '#00CFFF'),
-      ds('ph',              'pH',               '#A8FF78'),
-      ds('od_temp',         'Temp. (°C)',        '#FF6B35'),
-    ],
-  };
-
-  if (chart) { chart.data = chartData; chart.update('none'); return; }
-
-  chart = new Chart(document.getElementById('chart'), {
-    type: 'line',
-    data: chartData,
-    options: {
-      responsive: true, maintainAspectRatio: false, animation: false,
-      interaction: {mode: 'index', intersect: false},
-      plugins: {
-        legend: {
-          position: 'bottom',
-          labels: {color:'rgba(255,255,255,0.55)', font:{size:11}, boxWidth:14, padding:16},
-        },
-        tooltip: {
-          backgroundColor:'rgba(0,20,40,0.85)', borderColor:'rgba(255,255,255,0.1)',
-          borderWidth:1, titleColor:'rgba(255,255,255,0.8)', bodyColor:'rgba(255,255,255,0.65)',
-        },
-      },
-      scales: {
-        x: {ticks:{color:'rgba(255,255,255,0.35)',maxTicksLimit:8,font:{size:10}}, grid:{color:'rgba(255,255,255,0.05)'}},
-        y: {ticks:{color:'rgba(255,255,255,0.35)',font:{size:10}}, grid:{color:'rgba(255,255,255,0.05)'}},
+function makeChartOptions(color) {
+  return {
+    responsive: true, maintainAspectRatio: false, animation: false,
+    interaction: {mode: 'index', intersect: false},
+    plugins: {
+      legend: {display: false},
+      tooltip: {
+        backgroundColor:'rgba(0,20,40,0.85)', borderColor: color,
+        borderWidth:1, titleColor:'rgba(255,255,255,0.8)', bodyColor: color,
       },
     },
+    scales: {
+      x: {ticks:{color:'rgba(255,255,255,0.3)',maxTicksLimit:6,font:{size:10}}, grid:{color:'rgba(255,255,255,0.04)'}},
+      y: {ticks:{color:'rgba(255,255,255,0.3)',font:{size:10}},                 grid:{color:'rgba(255,255,255,0.04)'}},
+    },
+  };
+}
+
+function renderCharts(history) {
+  const refKey = 'od_temp';
+  const labels = (history?.[refKey] ?? []).map(p =>
+    new Date(p.ts).toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})
+  );
+
+  METRICS.forEach(({key, canvasId, color, label}) => {
+    const data = (history?.[key] ?? []).map(p => parseFloat(p.value).toFixed(3));
+    const chartData = {
+      labels,
+      datasets: [{
+        label, data,
+        borderColor: color,
+        backgroundColor: color.replace(/^#/, '') !== color
+          ? `${color}18` : 'transparent',
+        borderWidth: 2, pointRadius: 0, tension: 0.35, fill: true,
+      }],
+    };
+    if (charts[key]) {
+      charts[key].data = chartData;
+      charts[key].update('none');
+    } else {
+      charts[key] = new Chart(document.getElementById(canvasId), {
+        type: 'line', data: chartData,
+        options: makeChartOptions(color),
+      });
+    }
   });
 }
 
@@ -408,7 +439,6 @@ function connectWS() {
   ws = new WebSocket(wsUrl);
 
   ws.onopen = () => {
-    // Assina telemetria mais recente do dispositivo
     ws.send(JSON.stringify({
       tsSubCmds: [{
         entityType: 'DEVICE',
@@ -432,7 +462,6 @@ function connectWS() {
   ws.onerror = () => ws.close();
 
   ws.onclose = () => {
-    // Reconecta em 5s
     clearTimeout(wsReconTimer);
     wsReconTimer = setTimeout(async () => {
       try {
@@ -449,7 +478,7 @@ document.querySelectorAll('.time-btn').forEach(btn => {
     document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     horasHistorico = parseInt(btn.dataset.h, 10);
-    try { renderChart(await fetchHistory()); } catch (e) { console.error(e); }
+    try { renderCharts(await fetchHistory()); } catch (e) { console.error(e); }
   });
 });
 
@@ -457,12 +486,10 @@ document.querySelectorAll('.time-btn').forEach(btn => {
 async function init() {
   try {
     await getToken();
-    // Histórico inicial e WS em paralelo
     const [history] = await Promise.all([fetchHistory(), Promise.resolve(connectWS())]);
-    renderChart(history);
-    // Recarrega gráfico histórico a cada minuto
+    renderCharts(history);
     setInterval(async () => {
-      try { renderChart(await fetchHistory()); } catch (e) { console.error(e); }
+      try { renderCharts(await fetchHistory()); } catch (e) { console.error(e); }
     }, CHART_REFRESH_MS);
   } catch (err) {
     document.querySelector('.loading-txt').textContent = 'Erro de conexão — recarregue a página.';
