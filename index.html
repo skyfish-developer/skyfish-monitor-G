@@ -46,7 +46,7 @@
     .spinner {
       width: 44px; height: 44px;
       border: 3px solid rgba(255,255,255,0.1);
-      border-top-color: #00c896;
+      border-top-color: #00FFB3;
       border-radius: 50%;
       animation: spin .8s linear infinite;
     }
@@ -96,10 +96,10 @@
       top: 0; left: 0; right: 0; height: 3px;
       border-radius: 22px 22px 0 0;
     }
-    .card.od   ::before { background: linear-gradient(90deg,#00c896,#00a67a); }
-    .card.sat  ::before { background: linear-gradient(90deg,#4fb3d8,#005B96); }
-    .card.ph   ::before { background: linear-gradient(90deg,#7dd9a0,#00A676); }
-    .card.temp ::before { background: linear-gradient(90deg,#ff8c69,#e85d3c); }
+    .card.od   ::before { background: linear-gradient(90deg,#00FFB3,#00c896); }
+    .card.sat  ::before { background: linear-gradient(90deg,#00CFFF,#0099cc); }
+    .card.ph   ::before { background: linear-gradient(90deg,#A8FF78,#5ecc3a); }
+    .card.temp ::before { background: linear-gradient(90deg,#FF6B35,#e84a10); }
 
     /* SVG icon inside card */
     .card-icon { width: 36px; height: 36px; margin-bottom: 14px; opacity: .85; }
@@ -110,10 +110,10 @@
       color: rgba(255,255,255,.5); margin-bottom: 8px;
     }
     .card-value { font-size: 2.9rem; font-weight: 700; line-height: 1; margin-bottom: 4px; }
-    .card.od   .card-value { color: #00c896; }
-    .card.sat  .card-value { color: #4fb3d8; }
-    .card.ph   .card-value { color: #7dd9a0; }
-    .card.temp .card-value { color: #ff8c69; }
+    .card.od   .card-value { color: #00FFB3; }
+    .card.sat  .card-value { color: #00CFFF; }
+    .card.ph   .card-value { color: #A8FF78; }
+    .card.temp .card-value { color: #FF6B35; }
     .card-unit { font-size: .85rem; color: rgba(255,255,255,.38); }
 
     /* ── Chart ── */
@@ -154,7 +154,7 @@
     .status-item { display: flex; align-items: center; gap: 7px; font-size: .78rem; color: rgba(255,255,255,.42); }
     .dot-live {
       width: 8px; height: 8px; border-radius: 50%;
-      background: #00c896; box-shadow: 0 0 6px #00c896;
+      background: #00FFB3; box-shadow: 0 0 8px #00FFB3;
       animation: pulse 2s ease-in-out infinite;
     }
     @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
@@ -214,7 +214,7 @@
   <div class="cards-grid">
 
     <div class="card od">
-      <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="#00c896" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="#00FFB3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
         <path d="M12 2C6 9 4 13 4 16a8 8 0 0 0 16 0c0-3-2-7-8-14z"/>
       </svg>
       <div class="card-label">OD Concentração</div>
@@ -223,10 +223,10 @@
     </div>
 
     <div class="card sat">
-      <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="#4fb3d8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="#00CFFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="12" cy="12" r="10"/>
         <path d="M8 12a4 4 0 0 1 8 0"/>
-        <circle cx="12" cy="12" r="1" fill="#4fb3d8"/>
+        <circle cx="12" cy="12" r="1" fill="#00CFFF"/>
       </svg>
       <div class="card-label">OD Saturação</div>
       <div class="card-value" id="val-sat">--</div>
@@ -234,7 +234,7 @@
     </div>
 
     <div class="card ph">
-      <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="#7dd9a0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="#A8FF78" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
         <path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2v-4M9 21H5a2 2 0 0 1-2-2v-4m0 0h18"/>
       </svg>
       <div class="card-label">pH</div>
@@ -243,7 +243,7 @@
     </div>
 
     <div class="card temp">
-      <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="#ff8c69" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="#FF6B35" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
         <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/>
       </svg>
       <div class="card-label">Temperatura</div>
@@ -278,7 +278,7 @@
       Atualizado às <strong id="last-update" style="color:rgba(255,255,255,.65);margin-left:4px">--</strong>
     </div>
     <div class="status-item">
-      Próxima atualização em <span id="countdown" style="color:#00c896;font-weight:600;margin-left:4px">30</span>s
+      <span id="countdown" style="color:#00FFB3;font-weight:600">Conectando...</span>
     </div>
   </div>
 
@@ -299,11 +299,12 @@ const CONFIG = {
 
 const KEYS = ['od_concentracao', 'od_saturacao', 'ph', 'od_temp'];
 
-let jwt = null;
-let chart = null;
+let jwt        = null;
+let chart      = null;
+let ws         = null;
+let wsReconTimer = null;
 let horasHistorico = 6;
-let countdownSecs = CONFIG.REFRESH_MS / 1000;
-let countdownTimer = null;
+const CHART_REFRESH_MS = 60_000; // gráfico histórico: 1 min
 
 // ── Auth via cliente público ──
 async function getToken() {
@@ -317,17 +318,7 @@ async function getToken() {
   jwt = d.token;
 }
 
-// ── Valores mais recentes ──
-async function fetchLatest() {
-  const r = await fetch(
-    `${CONFIG.TB_URL}/api/plugins/telemetry/DEVICE/${CONFIG.DEVICE_ID}/values/timeseries?keys=${KEYS.join(',')}`,
-    {headers: {Authorization: `Bearer ${jwt}`}},
-  );
-  if (r.status === 401) { jwt = null; throw new Error('token expirado'); }
-  return r.json();
-}
-
-// ── Histórico ──
+// ── Histórico (REST) ──
 async function fetchHistory() {
   const end   = Date.now();
   const start = end - horasHistorico * 3600 * 1000;
@@ -346,13 +337,16 @@ function fmt(v, dec = 2) {
   return isNaN(n) ? '--' : n.toFixed(dec);
 }
 
-function renderCards(data) {
-  document.getElementById('val-od'  ).textContent = fmt(data?.od_concentracao?.[0]?.value);
-  document.getElementById('val-sat' ).textContent = fmt(data?.od_saturacao?.[0]?.value);
-  document.getElementById('val-ph'  ).textContent = fmt(data?.ph?.[0]?.value);
-  document.getElementById('val-temp').textContent = fmt(data?.od_temp?.[0]?.value, 1);
+function renderCards(latest) {
+  // latest vem do WS: { od_concentracao: [[ts, val]], ... }
+  const get = key => latest?.[key]?.[0]?.[1] ?? latest?.[key]?.[0]?.value;
+  document.getElementById('val-od'  ).textContent = fmt(get('od_concentracao'), 3);
+  document.getElementById('val-sat' ).textContent = fmt(get('od_saturacao'), 3);
+  document.getElementById('val-ph'  ).textContent = fmt(get('ph'), 3);
+  document.getElementById('val-temp').textContent = fmt(get('od_temp'), 2);
   document.getElementById('last-update').textContent =
     new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+  document.getElementById('loading').classList.add('hidden');
 }
 
 // ── Renderiza gráfico ──
@@ -364,11 +358,9 @@ function renderChart(history) {
   });
 
   function ds(key, label, color) {
-    const vals = (history?.[key] ?? []).map(p => parseFloat(p.value).toFixed(3));
     return {
-      label, data: vals,
-      borderColor: color,
-      backgroundColor: 'transparent',
+      label, data: (history?.[key] ?? []).map(p => parseFloat(p.value).toFixed(3)),
+      borderColor: color, backgroundColor: 'transparent',
       borderWidth: 2, pointRadius: 0, tension: 0.35,
     };
   }
@@ -376,100 +368,109 @@ function renderChart(history) {
   const chartData = {
     labels,
     datasets: [
-      ds('od_concentracao', 'OD Conc. (mg/L)', '#00c896'),
-      ds('od_saturacao',    'OD Sat. (%)',      '#4fb3d8'),
-      ds('ph',              'pH',               '#7dd9a0'),
-      ds('od_temp',         'Temp. (°C)',        '#ff8c69'),
+      ds('od_concentracao', 'OD Conc. (mg/L)', '#00FFB3'),
+      ds('od_saturacao',    'OD Sat. (%)',      '#00CFFF'),
+      ds('ph',              'pH',               '#A8FF78'),
+      ds('od_temp',         'Temp. (°C)',        '#FF6B35'),
     ],
   };
 
-  if (chart) {
-    chart.data = chartData;
-    chart.update('none');
-    return;
-  }
+  if (chart) { chart.data = chartData; chart.update('none'); return; }
 
   chart = new Chart(document.getElementById('chart'), {
     type: 'line',
     data: chartData,
     options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      animation: false,
+      responsive: true, maintainAspectRatio: false, animation: false,
       interaction: {mode: 'index', intersect: false},
       plugins: {
         legend: {
           position: 'bottom',
-          labels: {
-            color: 'rgba(255,255,255,0.55)',
-            font: {size: 11},
-            boxWidth: 14, padding: 16,
-          },
+          labels: {color:'rgba(255,255,255,0.55)', font:{size:11}, boxWidth:14, padding:16},
         },
         tooltip: {
-          backgroundColor: 'rgba(0,20,40,0.85)',
-          borderColor: 'rgba(255,255,255,0.1)',
-          borderWidth: 1,
-          titleColor: 'rgba(255,255,255,0.8)',
-          bodyColor: 'rgba(255,255,255,0.65)',
+          backgroundColor:'rgba(0,20,40,0.85)', borderColor:'rgba(255,255,255,0.1)',
+          borderWidth:1, titleColor:'rgba(255,255,255,0.8)', bodyColor:'rgba(255,255,255,0.65)',
         },
       },
       scales: {
-        x: {
-          ticks: {color:'rgba(255,255,255,0.35)', maxTicksLimit:8, font:{size:10}},
-          grid:  {color:'rgba(255,255,255,0.05)'},
-        },
-        y: {
-          ticks: {color:'rgba(255,255,255,0.35)', font:{size:10}},
-          grid:  {color:'rgba(255,255,255,0.05)'},
-        },
+        x: {ticks:{color:'rgba(255,255,255,0.35)',maxTicksLimit:8,font:{size:10}}, grid:{color:'rgba(255,255,255,0.05)'}},
+        y: {ticks:{color:'rgba(255,255,255,0.35)',font:{size:10}}, grid:{color:'rgba(255,255,255,0.05)'}},
       },
     },
   });
 }
 
-// ── Ciclo principal ──
-async function refresh() {
-  try {
-    if (!jwt) await getToken();
-    const [latest, history] = await Promise.all([fetchLatest(), fetchHistory()]);
-    renderCards(latest);
-    renderChart(history);
-    document.getElementById('loading').classList.add('hidden');
-  } catch (err) {
-    console.error('Erro:', err.message);
-    if (!jwt) {
-      document.querySelector('.loading-txt').textContent = 'Erro de conexão — tentando novamente...';
-    }
-  }
-}
+// ── WebSocket — atualização em tempo real ──
+function connectWS() {
+  if (ws) ws.close();
+  const wsUrl = CONFIG.TB_URL.replace(/^http/, 'ws') + `/api/ws/plugins/telemetry?token=${jwt}`;
+  ws = new WebSocket(wsUrl);
 
-// ── Countdown ──
-function startCountdown() {
-  clearInterval(countdownTimer);
-  countdownSecs = CONFIG.REFRESH_MS / 1000;
-  const el = document.getElementById('countdown');
-  el.textContent = countdownSecs;
-  countdownTimer = setInterval(() => {
-    countdownSecs--;
-    el.textContent = Math.max(0, countdownSecs);
-    if (countdownSecs <= 0) clearInterval(countdownTimer);
-  }, 1000);
+  ws.onopen = () => {
+    // Assina telemetria mais recente do dispositivo
+    ws.send(JSON.stringify({
+      tsSubCmds: [{
+        entityType: 'DEVICE',
+        entityId  : CONFIG.DEVICE_ID,
+        scope     : 'LATEST_TELEMETRY',
+        cmdId     : 1,
+      }],
+      historyCmds : [],
+      attrSubCmds : [],
+    }));
+    document.getElementById('countdown').textContent = 'ao vivo';
+  };
+
+  ws.onmessage = evt => {
+    const msg = JSON.parse(evt.data);
+    if (msg.data && Object.keys(msg.data).length) {
+      renderCards(msg.data);
+    }
+  };
+
+  ws.onerror = () => ws.close();
+
+  ws.onclose = () => {
+    // Reconecta em 5s
+    clearTimeout(wsReconTimer);
+    wsReconTimer = setTimeout(async () => {
+      try {
+        if (!jwt) await getToken();
+        connectWS();
+      } catch (e) { console.error('Reconexão falhou:', e.message); }
+    }, 5000);
+  };
 }
 
 // ── Botões de período ──
 document.querySelectorAll('.time-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
+  btn.addEventListener('click', async () => {
     document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     horasHistorico = parseInt(btn.dataset.h, 10);
-    refresh();
+    try { renderChart(await fetchHistory()); } catch (e) { console.error(e); }
   });
 });
 
 // ── Boot ──
-refresh().then(startCountdown);
-setInterval(() => { refresh(); startCountdown(); }, CONFIG.REFRESH_MS);
+async function init() {
+  try {
+    await getToken();
+    // Histórico inicial e WS em paralelo
+    const [history] = await Promise.all([fetchHistory(), Promise.resolve(connectWS())]);
+    renderChart(history);
+    // Recarrega gráfico histórico a cada minuto
+    setInterval(async () => {
+      try { renderChart(await fetchHistory()); } catch (e) { console.error(e); }
+    }, CHART_REFRESH_MS);
+  } catch (err) {
+    document.querySelector('.loading-txt').textContent = 'Erro de conexão — recarregue a página.';
+    console.error(err);
+  }
+}
+
+init();
 </script>
 
 <!--
