@@ -273,6 +273,10 @@
       <button class="time-btn active" data-h="6">6h</button>
       <button class="time-btn" data-h="24">24h</button>
       <button class="time-btn" data-h="72">3d</button>
+      <button class="time-btn" data-h="120">5d</button>
+      <button class="time-btn" data-h="168">7d</button>
+      <button class="time-btn" data-h="360">15d</button>
+      <button class="time-btn" data-h="720">30d</button>
     </div>
   </div>
 
@@ -350,9 +354,11 @@ async function getToken() {
 async function fetchHistory() {
   const end   = Date.now();
   const start = end - horasHistorico * 3600 * 1000;
+  // Mais pontos para períodos maiores
+  const limit = horasHistorico <= 24 ? 300 : horasHistorico <= 168 ? 500 : 1000;
   const r = await fetch(
     `${CONFIG.TB_URL}/api/plugins/telemetry/DEVICE/${CONFIG.DEVICE_ID}/values/timeseries` +
-    `?keys=${KEYS.join(',')}&startTs=${start}&endTs=${end}&limit=300&agg=NONE&orderBy=ASC`,
+    `?keys=${KEYS.join(',')}&startTs=${start}&endTs=${end}&limit=${limit}&agg=NONE&orderBy=ASC`,
     {headers: {Authorization: `Bearer ${jwt}`}},
   );
   if (r.status === 401) { jwt = null; throw new Error('token expirado'); }
