@@ -270,13 +270,13 @@
   <div class="period-bar">
     <span class="period-label">Período do histórico</span>
     <div class="time-buttons">
-      <button class="time-btn active" data-h="6">6h</button>
+      <button class="time-btn active" data-h="1">1h</button>
+      <button class="time-btn" data-h="3">3h</button>
+      <button class="time-btn" data-h="12">12h</button>
       <button class="time-btn" data-h="24">24h</button>
+      <button class="time-btn" data-h="48">2d</button>
       <button class="time-btn" data-h="72">3d</button>
-      <button class="time-btn" data-h="120">5d</button>
       <button class="time-btn" data-h="168">7d</button>
-      <button class="time-btn" data-h="360">15d</button>
-      <button class="time-btn" data-h="720">30d</button>
     </div>
   </div>
 
@@ -335,7 +335,7 @@ let jwt        = null;
 let charts     = {};
 let ws         = null;
 let wsReconTimer = null;
-let horasHistorico = 6;
+let horasHistorico = 1;
 const CHART_REFRESH_MS = 60_000;
 
 // ── Auth via cliente público ──
@@ -351,18 +351,69 @@ async function getToken() {
 }
 
 // ── Histórico (REST) ──
-async function fetchHistory() {
-  const end   = Date.now();
-  const start = end - horasHistorico * 3600 * 1000;
-  // Mais pontos para períodos maiores
-  const limit = horasHistorico <= 24 ? 300 : horasHistorico <= 168 ? 500 : 1000;
+
+// Períodos curtos: busca todos os pontos brutos via paginação por timestamp
+async function fetchRaw(start, end) {
+  const BATCH = 1000;
+  const allData = {};
+  for (const key of KEYS) allData[key] = [];
+  let currentEnd = end;
+
+  while (true) {
+    const r = await fetch(
+      `${CONFIG.TB_URL}/api/plugins/telemetry/DEVICE/${CONFIG.DEVICE_ID}/values/timeseries` +
+      `?keys=${KEYS.join(',')}&startTs=${start}&endTs=${currentEnd}&limit=${BATCH}&agg=NONE&orderBy=DESC`,
+      {headers: {Authorization: `Bearer ${jwt}`}},
+    );
+    if (r.status === 401) { jwt = null; throw new Error('token expirado'); }
+    const batch = await r.json();
+
+    let hasMore = false;
+    let oldestTs = currentEnd;
+
+    for (const key of KEYS) {
+      const points = batch[key] ?? [];
+      allData[key].push(...points);
+      if (points.length === BATCH) hasMore = true;
+      if (points.length > 0) {
+        const ts = points[points.length - 1].ts;
+        if (ts < oldestTs) oldestTs = ts;
+      }
+    }
+
+    if (!hasMore || oldestTs <= start) break;
+    currentEnd = oldestTs - 1;
+  }
+
+  for (const key of KEYS) allData[key].sort((a, b) => a.ts - b.ts);
+  return allData;
+}
+
+// Períodos longos: agrega por intervalo → sempre ~144 pontos, 1 requisição
+async function fetchAggregated(start, end, intervalMs) {
   const r = await fetch(
     `${CONFIG.TB_URL}/api/plugins/telemetry/DEVICE/${CONFIG.DEVICE_ID}/values/timeseries` +
-    `?keys=${KEYS.join(',')}&startTs=${start}&endTs=${end}&limit=${limit}&agg=NONE&orderBy=ASC`,
+    `?keys=${KEYS.join(',')}&startTs=${start}&endTs=${end}&limit=1000&agg=AVG&interval=${intervalMs}&orderBy=ASC`,
     {headers: {Authorization: `Bearer ${jwt}`}},
   );
   if (r.status === 401) { jwt = null; throw new Error('token expirado'); }
   return r.json();
+}
+
+async function fetchHistory() {
+  const end   = Date.now();
+  const start = end - horasHistorico * 3600 * 1000;
+
+  if (horasHistorico <= 3) return fetchRaw(start, end);
+
+  const intervalMs =
+    horasHistorico <= 12 ?  5 * 60_000 :   // 5 min → 144 pts
+    horasHistorico <= 24 ? 10 * 60_000 :   // 10 min → 144 pts
+    horasHistorico <= 48 ? 20 * 60_000 :   // 20 min → 144 pts
+    horasHistorico <= 72 ? 30 * 60_000 :   // 30 min → 144 pts
+                           60 * 60_000;    // 1 hora → 168 pts
+
+  return fetchAggregated(start, end, intervalMs);
 }
 
 // ── Renderiza cards ──
@@ -409,13 +460,13 @@ function makeChartOptions(color) {
 }
 
 function renderCharts(history) {
-  const refKey = 'od_temp';
-  const labels = (history?.[refKey] ?? []).map(p =>
-    new Date(p.ts).toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})
-  );
-
   METRICS.forEach(({key, canvasId, color, label}) => {
-    const data = (history?.[key] ?? []).map(p => parseFloat(p.value).toFixed(3));
+    const points = history?.[key] ?? [];
+    const labels = points.map(p => {
+      const d = new Date(p.ts);
+      return d.toLocaleString('pt-BR', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'});
+    });
+    const data = points.map(p => parseFloat(p.value).toFixed(3));
     const chartData = {
       labels,
       datasets: [{
